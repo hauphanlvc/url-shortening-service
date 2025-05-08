@@ -12,9 +12,9 @@ DB_HOST ?= $(POSTGRES_HOST)
 DB_PORT ?= $(POSTGRES_PORT)
 DB_SSLMODE ?= disable
 
-MIGRATIONS_DIR = ./internal/db/migrations
+MIGRATIONS_DIR = ./db/migrations
 DATABASE_URL = postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)
-
+export $PATH="bin/:$PATH"
 # Migrate Up: Apply all migrations
 migrate-up:
 	@migrate -path $(MIGRATIONS_DIR) -database "$(DATABASE_URL)" up

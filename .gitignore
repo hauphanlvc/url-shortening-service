@@ -23,4 +23,6 @@ go.work.sum
 
 # env file
 .env
-config.yaml
+./config/config.yaml
+# built file
+./tmp/*
