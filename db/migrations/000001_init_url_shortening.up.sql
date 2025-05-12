@@ -2,7 +2,7 @@ CREATE TABLE "urls" (
   "id" BIGSERIAL PRIMARY KEY,
   "original_url" TEXT NOT NULL,
   "short_url" VARCHAR(7) UNIQUE NOT NULL,
-  "created_at" TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
+  "created_at" TIMESTAMP DEFAULT NOW(),
   "expired_at" TIMESTAMP NOT NULL
 );
 

@@ -20,14 +20,14 @@ func NewGenerateService(dbConn *sql.DB) *GenerateService {
 }
 
 func (gs *GenerateService) InsertNewShortUrl(ctx context.Context, url string) (*db.Url, error) {
-	shortUrl, err := generateShortUrl(url)
+	shortUrl, err := GenerateShortUrl(url)
 	if err != nil {
 		return nil, err
 	}
 	params := db.InsertNewShortUrlParams{
 		OriginalUrl: url,
 		ShortUrl:    shortUrl,
-		ExpiredAt:   time.Now(),
+		ExpiredAt:   time.Now().Add(5 * time.Hour),
 	}
 	result, err := gs.queries.InsertNewShortUrl(ctx, params)
 	if err != nil {

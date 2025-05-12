@@ -47,7 +47,7 @@ func (b *Base62EncodeMethod) Encode(url string) ([]byte, error) {
 	return base62.Encode(hashUrl)[:SHORT_URL_LEN], nil
 }
 
-func generateShortUrl(url string) (string, error) {
+func GenerateShortUrl(url string) (string, error) {
 	md5hashMethod := &Md5HashMethod{}
 	base62EncodeMethod := &Base62EncodeMethod{hasher: md5hashMethod}
 	shortUrl, err := base62EncodeMethod.Encode(url)
