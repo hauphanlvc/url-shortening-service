@@ -19,11 +19,12 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 	// Connect to the database
-	dbConn, err := sql.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		cfg.Database.Host, cfg.Database.Port,
 		cfg.Database.User, cfg.Database.Password,
-		cfg.Database.DBName, cfg.Database.SSLMode),
-	)
+		cfg.Database.DBName, cfg.Database.SSLMode)
+
+	dbConn, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatalf("Cannot connect database %s", err)
 	}

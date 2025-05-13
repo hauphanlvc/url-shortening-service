@@ -1,5 +1,5 @@
 services:
-  postgres:
+  url_shortener_db:
     image: postgres:13-alpine
     container_name: url_shortener_db
     environment:
@@ -16,6 +16,24 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-
+    networks:
+      - url_shortener_server
+  app:
+    build: .
+    depends_on:
+      - url_shortener_db
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: url_shortener_db
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+      DB_PORT: ${POSTGRES_PORT}
+    networks:
+      - url_shortener_server
 volumes:
   postgres_data:
+networks:
+  url_shortener_server:
