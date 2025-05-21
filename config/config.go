@@ -1,38 +1,46 @@
 package config
 
 import (
-	"fmt"
-	"github.com/spf13/viper"
+	// "fmt"
 	"log"
+	"os"
+
+	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Server struct {
-		Port string `mapstructure:"port"`
-	} `mapstructure:"server"`
-	Database struct {
-		Host     string `mapstructure:"host"`
-		Port     string `mapstructure:"port"`
-		User     string `mapstructure:"user"`
-		Password string `mapstructure:"password"`
-		DBName   string `mapstructure:"dbname"`
-		SSLMode  string `mapstructure:"sslmode"`
-	} `mapstructure:"database"`
-	Shortener struct {
-		BaseURL    string `mapstructure:"base_url"`
-		CodeLength int    `mapstructure:"code_length"`
-	} `mapstructure:"shortener"`
+	Host     string `mapstructure:"HOST"`
+	Port     string `mapstructure:"PORT"`
+	User     string `mapstructure:"USER"`
+	Password string `mapstructure:"PASSWORD"`
+	DBName   string `mapstructure:"NAME"`
+	SSLMode  string `mapstructure:"SSLMODE"`
 }
 
-func LoadConfig(path string) (*Config, error) {
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(path)
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(fmt.Errorf("Fatal error config file: %w", err))
+func LoadLocalEnv() error {
+	env := os.Getenv("APP_ENV")
+	if env == "local" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
 	}
+	return nil
+}
+func LoadConfig(path string) (*Config, error) {
+
+	if err := LoadLocalEnv(); err != nil {
+		return nil, err
+	}
+	viper.SetEnvPrefix("DB")
 	viper.AutomaticEnv()
+	viper.BindEnv("HOST")
+	viper.BindEnv("PORT")
+	viper.BindEnv("USER")
+	viper.BindEnv("PASSWORD")
+	viper.BindEnv("NAME")
+	viper.BindEnv("SSLMODE")
 
 	var config Config
 

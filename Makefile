@@ -5,13 +5,13 @@ include .env
 export $(shell sed 's/=.*//' .env)
 
 # Load environment variables
-DB_NAME ?= $(POSTGRES_DB)
-DB_USER ?= $(POSTGRES_USER)
-DB_PASSWORD ?= $(POSTGRES_PASSWORD)
-DB_HOST ?= $(POSTGRES_HOST)
-DB_PORT ?= $(POSTGRES_PORT)
-DB_SSLMODE ?= disable
-
+DB_NAME ?= $(DB_NAME)
+DB_USER ?= $(DB_USER)
+DB_PASSWORD ?= $(DB_PASSWORD)
+DB_HOST ?= $(DB_HOST)
+DB_PORT ?= $(DB_PORT)
+DB_SSLMODE ?= ${DB_SSLMODE}
+DB_HOST="localhost"
 MIGRATIONS_DIR = ./db/migrations
 DATABASE_URL = postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)
 export $PATH="bin/:$PATH"
@@ -39,6 +39,7 @@ download-migrate:
 	fi
 # Migrate Up: Apply all migrations
 migrate-up:
+	echo $(DATABASE_URL)
 	@migrate -path $(MIGRATIONS_DIR) -database "$(DATABASE_URL)" up
 
 # Migrate Down: Revert the last migration

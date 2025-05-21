@@ -7,3 +7,9 @@ INSERT INTO urls (original_url, short_url, expired_at) VALUES ( $1, $2, $3) RETU
 
 -- name: DeleteExpiredShortUrl :exec
 DELETE FROM urls WHERE short_url = $1;
+
+-- name: CheckShortUrlExists :one
+SELECT EXISTS (
+    SELECT 1 FROM urls
+    WHERE short_url = $1
+);

@@ -1,0 +1,11 @@
+# Ignore config and secrets
+.env
+.env.*
+
+go.work
+go.work.sum
+
+# built file
+/tmp/*
+/bin/*
+

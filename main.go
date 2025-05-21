@@ -14,16 +14,16 @@ import (
 
 func main() {
 	// Load configuration
-	cfg, err := config.LoadConfig("config")
+	cfg, err := config.LoadConfig(".")
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 	// Connect to the database
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		cfg.Database.Host, cfg.Database.Port,
-		cfg.Database.User, cfg.Database.Password,
-		cfg.Database.DBName, cfg.Database.SSLMode)
-
+		cfg.Host, cfg.Port,
+		cfg.User, cfg.Password,
+		cfg.DBName, cfg.SSLMode)
+	log.Println("connStr: ", connStr)
 	dbConn, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatalf("Cannot connect database %s", err)

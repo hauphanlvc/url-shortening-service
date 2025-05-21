@@ -10,6 +10,20 @@ import (
 	"time"
 )
 
+const checkShortUrlExists = `-- name: CheckShortUrlExists :one
+SELECT EXISTS (
+    SELECT 1 FROM urls
+    WHERE short_url = $1
+)
+`
+
+func (q *Queries) CheckShortUrlExists(ctx context.Context, shortUrl string) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkShortUrlExists, shortUrl)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const deleteExpiredShortUrl = `-- name: DeleteExpiredShortUrl :exec
 DELETE FROM urls WHERE short_url = $1
 `
