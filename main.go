@@ -6,7 +6,8 @@ import (
 	"log"
 	"url-shortening-service/config"
 	"url-shortening-service/generate"
-	"url-shortening-service/retrieve"
+	"url-shortening-service/internal/rest"
+	_ "url-shortening-service/retrieve"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
@@ -28,16 +29,25 @@ func main() {
 	if err != nil {
 		log.Fatalf("Cannot connect database %s", err)
 	}
-	defer dbConn.Close()
+	err = dbConn.Ping()
+	if err != nil {
+		log.Fatal("Failed to ping database")
+	}
+	defer func() {
+		err := dbConn.Close()
+		if err != nil {
+			log.Fatal("Got the error when closing the DB connection")
+		}
+	}()
 
 	router := gin.Default()
 	generateService := generate.NewGenerateService(dbConn)
-	gernerateHandler := generate.NewGeneateHandler(generateService)
+	gernerateHandler := rest.NewGeneateHandler(generateService)
 	router.POST("/shorten", gernerateHandler.Generate)
 
-	retrieveService := retrieve.NewRetrieveService(dbConn)
-	retrieveHandler := retrieve.NewRetrieveHandler(retrieveService)
-	router.GET("/:shortUrl", retrieveHandler.Retrieve)
+	// retrieveService := retrieve.NewRetrieveService(dbConn)
+	// retrieveHandler := retrieve.NewRetrieveHandler(retrieveService)
+	// router.GET("/:shortUrl", retrieveHandler.Retrieve)
 	router.Run(":8080")
 	fmt.Println("Server is running on port 8080", cfg)
 }

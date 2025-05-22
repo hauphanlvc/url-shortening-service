@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
-	db "url-shortening-service/db/sqlc"
+	db "url-shortening-service/db/postgres/sqlc"
 )
 
 type GenerateService struct {
@@ -20,14 +20,13 @@ func NewGenerateService(dbConn *sql.DB) *GenerateService {
 	}
 }
 
-func (gs *GenerateService) InsertNewShortUrl(ctx context.Context, url string) (*db.Url, error) {
+func (gs *GenerateService) InsertNewShortUrl(ctx context.Context, url string) (*string, error) {
 	shortUrl, err := GenerateShortUrl(url)
 	if err != nil {
 		return nil, err
 	}
 	salt := 0
-	for true {
-
+	for {
 		existShortUrl, err := gs.queries.CheckShortUrlExists(ctx, shortUrl)
 		if err != nil {
 			return nil, err
@@ -51,5 +50,5 @@ func (gs *GenerateService) InsertNewShortUrl(ctx context.Context, url string) (*
 	if err != nil {
 		return nil, err
 	}
-	return &result, nil
+	return &result.ShortUrl, nil
 }

@@ -3,7 +3,7 @@ package retrieve
 import (
 	"context"
 	"database/sql"
-	db "url-shortening-service/db/sqlc"
+	db "url-shortening-service/db/postgres/sqlc"
 )
 
 type RetrieveService struct {

@@ -1,20 +1,21 @@
-package generate
+package rest
 
 import (
 	"net/http"
+	"url-shortening-service/generate"
 
 	"github.com/gin-gonic/gin"
 )
 
 type GenerateHanlder struct {
-	service *GenerateService
+	service *generate.GenerateService
 }
 
 type UrlRequest struct {
 	Url string `json:"url" binding:"required"`
 }
 
-func NewGeneateHandler(service *GenerateService) *GenerateHanlder {
+func NewGeneateHandler(service *generate.GenerateService) *GenerateHanlder {
 	return &GenerateHanlder{service: service}
 }
 
@@ -29,5 +30,5 @@ func (gh *GenerateHanlder) Generate(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"ShortUrl": shortUrl.ShortUrl})
+	c.JSON(http.StatusOK, gin.H{"ShortUrl": shortUrl})
 }

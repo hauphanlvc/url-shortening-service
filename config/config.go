@@ -20,16 +20,17 @@ type Config struct {
 
 func LoadLocalEnv() error {
 	env := os.Getenv("APP_ENV")
-	if env == "local" {
-		err := godotenv.Load()
-		if err != nil {
-			log.Fatal("Error loading .env file")
-		}
+	if env == "development" {
+		return nil
+	}
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
 	}
 	return nil
 }
-func LoadConfig(path string) (*Config, error) {
 
+func LoadConfig(path string) (*Config, error) {
 	if err := LoadLocalEnv(); err != nil {
 		return nil, err
 	}
