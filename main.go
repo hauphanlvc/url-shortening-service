@@ -7,7 +7,7 @@ import (
 	"url-shortening-service/config"
 	"url-shortening-service/generate"
 	"url-shortening-service/internal/rest"
-	_ "url-shortening-service/retrieve"
+	"url-shortening-service/retrieve"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
@@ -45,9 +45,9 @@ func main() {
 	gernerateHandler := rest.NewGeneateHandler(generateService)
 	router.POST("/shorten", gernerateHandler.Generate)
 
-	// retrieveService := retrieve.NewRetrieveService(dbConn)
-	// retrieveHandler := retrieve.NewRetrieveHandler(retrieveService)
-	// router.GET("/:shortUrl", retrieveHandler.Retrieve)
+	retrieveService := retrieve.NewRetrieveService(dbConn)
+	retrieveHandler := rest.NewRetrieveHandler(retrieveService)
+	router.GET("/:shortUrl", retrieveHandler.Retrieve)
 	router.Run(":8080")
 	fmt.Println("Server is running on port 8080", cfg)
 }

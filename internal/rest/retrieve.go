@@ -1,16 +1,17 @@
-package retrieve
+package rest
 
 import (
 	"net/http"
+	"url-shortening-service/retrieve"
 
 	"github.com/gin-gonic/gin"
 )
 
 type RetrieveHandler struct {
-	service *RetrieveService
+	service *retrieve.RetrieveService
 }
 
-func NewRetrieveHandler(service *RetrieveService) *RetrieveHandler {
+func NewRetrieveHandler(service *retrieve.RetrieveService) *RetrieveHandler {
 	return &RetrieveHandler{service: service}
 }
 
