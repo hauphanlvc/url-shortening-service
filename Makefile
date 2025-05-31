@@ -1,8 +1,7 @@
 # Makefile
 
-# Load .env file
-include .env
-export $(shell sed 's/=.*//' .env)
+-include .env
+export
 
 # Load environment variables
 DB_NAME ?= $(DB_NAME)
@@ -11,33 +10,18 @@ DB_PASSWORD ?= $(DB_PASSWORD)
 DB_HOST ?= $(DB_HOST)
 DB_PORT ?= $(DB_PORT)
 DB_SSLMODE ?= ${DB_SSLMODE}
-DB_HOST="localhost"
-MIGRATIONS_DIR = ./db/migrations
-DATABASE_URL = postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)
-export $PATH="bin/:$PATH"
-
-BIN_DIR := ./bin
-MIGRATE := $(BIN_DIR)/migrate
+DB_HOST ?= ${DB_HOST}
+MIGRATIONS_DIR = "./db/postgres/migrations"
+DATABASE_URL = "postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)"
+export $PATH="${PWD}/bin/:$PATH"
 
 OS := $(shell uname | tr A-Z a-z)
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
 
-
-download-migrate:
-	@mkdir -p $(BIN_DIR)
-	@if [ ! -f $(MIGRATE) ]; then \
-		echo "Downloading migrate..."; \
-		URL=$$(curl -s https://api.github.com/repos/golang-migrate/migrate/releases/latest \
-			| grep "browser_download_url.*$(OS)-$(ARCH)\.tar\.gz" \
-			| cut -d '"' -f 4); \
-		curl -L $$URL -o /tmp/migrate.tar.gz; \
-		tar -xzf /tmp/migrate.tar.gz -C $(BIN_DIR); \
-		chmod +x $(MIGRATE); \
-		echo "migrate installed at $(MIGRATE)"; \
-	else \
-		echo "migrate already exists at $(MIGRATE)"; \
-	fi
-# Migrate Up: Apply all migrations
+# .PHONY: install-deps deps
+# install-deps: migrate air mockery golangci-lint
+# deps: $(MIGRATE) $(AIR) ${MOKERY} $(GOLANGCI) ## Checks for Global Development Dependencies.
+# # Migrate Up: Apply all migrations
 migrate-up:
 	echo $(DATABASE_URL)
 	@migrate -path $(MIGRATIONS_DIR) -database "$(DATABASE_URL)" up

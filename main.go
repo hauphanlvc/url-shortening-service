@@ -7,6 +7,7 @@ import (
 	"url-shortening-service/config"
 	"url-shortening-service/generate"
 	"url-shortening-service/internal/rest"
+	"url-shortening-service/repository"
 	"url-shortening-service/retrieve"
 
 	"github.com/gin-gonic/gin"
@@ -41,7 +42,8 @@ func main() {
 	}()
 
 	router := gin.Default()
-	generateService := generate.NewGenerateService(dbConn)
+	postgresStore := repository.NewPostgresStore(dbConn)
+	generateService := generate.NewGenerateService(postgresStore)
 	gernerateHandler := rest.NewGeneateHandler(generateService)
 	router.POST("/shorten", gernerateHandler.Generate)
 
