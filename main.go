@@ -47,7 +47,7 @@ func main() {
 	gernerateHandler := rest.NewGeneateHandler(generateService)
 	router.POST("/shorten", gernerateHandler.Generate)
 
-	retrieveService := retrieve.NewRetrieveService(dbConn)
+	retrieveService := retrieve.NewRetrieveService(postgresStore)
 	retrieveHandler := rest.NewRetrieveHandler(retrieveService)
 	router.GET("/:shortUrl", retrieveHandler.Retrieve)
 	router.Run(":8080")

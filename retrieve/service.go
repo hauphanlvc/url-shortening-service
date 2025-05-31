@@ -2,26 +2,23 @@ package retrieve
 
 import (
 	"context"
-	"database/sql"
-	db "url-shortening-service/db/postgres/sqlc"
+	"url-shortening-service/repository"
 )
 
 type RetrieveService struct {
-	db      *sql.DB
-	queries *db.Queries
+	store repository.Store
 }
 
-func NewRetrieveService(dbConn *sql.DB) *RetrieveService {
+func NewRetrieveService(store repository.Store) *RetrieveService {
 	return &RetrieveService{
-		db:      dbConn,
-		queries: db.New(dbConn),
+		store: store,
 	}
 }
 
-func (rs *RetrieveService) RetrieveShortUrl(ctx context.Context, shortUrl string) (*db.Url, error) {
-	OriginalUrl, err := rs.queries.RetrieveShortUrl(ctx, shortUrl)
+func (r *RetrieveService) RetrieveShortUrl(ctx context.Context, shortUrl string) (*string, error) {
+	originalUrl, err := r.store.RertrieveShortUrl(ctx, shortUrl)
 	if err != nil {
 		return nil, err
 	}
-	return &OriginalUrl, nil
+	return originalUrl, nil
 }
