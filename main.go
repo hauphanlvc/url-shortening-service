@@ -42,8 +42,10 @@ func main() {
 	}()
 
 	router := gin.Default()
+
+	nanoIdGenerator := generate.NewNannoIdGenerator()
 	postgresStore := repository.NewPostgresStore(dbConn)
-	generateService := generate.NewGenerateService(postgresStore)
+	generateService := generate.NewGenerateService(postgresStore, nanoIdGenerator)
 	gernerateHandler := rest.NewGeneateHandler(generateService)
 	router.POST("/shorten", gernerateHandler.Generate)
 

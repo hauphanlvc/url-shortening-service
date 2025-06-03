@@ -6,17 +6,19 @@ import (
 )
 
 type GenerateService struct {
-	store repository.Store
+	store     repository.Store
+	generator Generator
 }
 
-func NewGenerateService(store repository.Store) *GenerateService {
+func NewGenerateService(store repository.Store, generator Generator) *GenerateService {
 	return &GenerateService{
-		store: store,
+		store:     store,
+		generator: generator,
 	}
 }
 
 func (g *GenerateService) InsertNewShortUrl(ctx context.Context, originalUrl string) (*string, error) {
-	shortUrl, err := GenerateShortUrl(originalUrl)
+	shortUrl, err := g.generator.GenerateShortUrl()
 	if err != nil {
 		return nil, err
 	}
