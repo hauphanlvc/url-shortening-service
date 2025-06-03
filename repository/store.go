@@ -10,6 +10,7 @@ import (
 type Store interface {
 	InsertNewShortUrl(ctx context.Context, originalUrl, shortUrl string) (*db.Url, error)
 	RertrieveShortUrl(ctx context.Context, shortUrl string) (*string, error)
+	CheckShortUrlExists(ctx context.Context, shortUrl string) (bool, error)
 }
 
 type PostgresStore struct {
@@ -44,4 +45,12 @@ func (p *PostgresStore) RertrieveShortUrl(ctx context.Context, shortUrl string) 
 		return nil, err
 	}
 	return &url.OriginalUrl, nil
+}
+
+func (p *PostgresStore) CheckShortUrlExists(ctx context.Context, shortUrl string) (bool, error) {
+	shortUrlExist, err := p.queries.CheckShortUrlExists(ctx, shortUrl)
+	if err != nil {
+		return false, err
+	}
+	return shortUrlExist, nil
 }
