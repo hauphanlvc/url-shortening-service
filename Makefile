@@ -1,19 +1,19 @@
 # Makefile
 
--include .env
-export
-
-# Load environment variables
-DB_NAME ?= $(DB_NAME)
-DB_USER ?= $(DB_USER)
-DB_PASSWORD ?= $(DB_PASSWORD)
-DB_HOST ?= $(DB_HOST)
-DB_PORT ?= $(DB_PORT)
-DB_SSLMODE ?= ${DB_SSLMODE}
-DB_HOST ?= ${DB_HOST}
-MIGRATIONS_DIR = "./db/postgres/migrations"
-DATABASE_URL = "postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)"
-export $PATH="${PWD}/bin/:$PATH"
+# -include .env
+# export
+#
+# # Load environment variables
+# DB_NAME ?= $(DB_NAME)
+# DB_USER ?= $(DB_USER)
+# DB_PASSWORD ?= $(DB_PASSWORD)
+# DB_HOST ?= $(DB_HOST)
+# DB_PORT ?= $(DB_PORT)
+# DB_SSLMODE ?= ${DB_SSLMODE}
+# DB_HOST ?= ${DB_HOST}
+# MIGRATIONS_DIR = "./db/postgres/migrations"
+# DATABASE_URL = "postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)"
+# export $PATH="${PWD}/bin/:$PATH"
 
 OS := $(shell uname | tr A-Z a-z)
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
@@ -35,7 +35,9 @@ migrate-force:
 migrate-create:
 	@migrate create -ext sql -dir $(MIGRATIONS_DIR) -seq $(name)
 local:
-	docker compose up url_shortener_db
-	go run main.go
+	docker compose up url_shortener_db -d
+	air
+dev:
+	docker compose up --build -d
 
-.PHONY: migrate-up migrate-down migrate-create migrate-force local
+.PHONY: migrate-up migrate-down migrate-create migrate-force local dev

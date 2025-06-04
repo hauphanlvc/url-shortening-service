@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
+	"url-shortening-service/cache"
 	"url-shortening-service/config"
 	"url-shortening-service/generate"
 	"url-shortening-service/internal/rest"
@@ -12,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -41,15 +44,24 @@ func main() {
 		}
 	}()
 
+	client := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+	if err := client.Ping(context.TODO()).Err(); err != nil {
+		log.Fatal(err)
+	}
+	dragonFlyCache := cache.NewDrangonFlyCache(client)
 	router := gin.Default()
 
 	nanoIdGenerator := generate.NewNannoIdGenerator()
 	postgresStore := repository.NewPostgresStore(dbConn)
-	generateService := generate.NewGenerateService(postgresStore, nanoIdGenerator)
+	generateService := generate.NewGenerateService(postgresStore, nanoIdGenerator, dragonFlyCache)
 	gernerateHandler := rest.NewGeneateHandler(generateService)
 	router.POST("/shorten", gernerateHandler.Generate)
 
-	retrieveService := retrieve.NewRetrieveService(postgresStore)
+	retrieveService := retrieve.NewRetrieveService(postgresStore, dragonFlyCache)
 	retrieveHandler := rest.NewRetrieveHandler(retrieveService)
 	router.GET("/:shortUrl", retrieveHandler.Retrieve)
 	router.Run(":8080")

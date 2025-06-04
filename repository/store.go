@@ -8,7 +8,7 @@ import (
 )
 
 type Store interface {
-	InsertNewShortUrl(ctx context.Context, originalUrl, shortUrl string) (*db.Url, error)
+	InsertNewShortUrl(ctx context.Context, originalUrl, shortUrl string) (string, error)
 	RertrieveShortUrl(ctx context.Context, shortUrl string) (*string, error)
 	CheckShortUrlExists(ctx context.Context, shortUrl string) (bool, error)
 }
@@ -25,7 +25,7 @@ func NewPostgresStore(dbConn *sql.DB) *PostgresStore {
 	}
 }
 
-func (g *PostgresStore) InsertNewShortUrl(ctx context.Context, originalUrl, shortUrl string) (*db.Url, error) {
+func (g *PostgresStore) InsertNewShortUrl(ctx context.Context, originalUrl, shortUrl string) (string, error) {
 	params := db.InsertNewShortUrlParams{
 		OriginalUrl: originalUrl,
 		ShortUrl:    shortUrl,
@@ -34,17 +34,17 @@ func (g *PostgresStore) InsertNewShortUrl(ctx context.Context, originalUrl, shor
 
 	url, err := g.queries.InsertNewShortUrl(ctx, params)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return &url, err
+	return url.ShortUrl, err
 }
 
-func (p *PostgresStore) RertrieveShortUrl(ctx context.Context, shortUrl string) (*string, error) {
+func (p *PostgresStore) RertrieveShortUrl(ctx context.Context, shortUrl string) (string, error) {
 	url, err := p.queries.RetrieveShortUrl(ctx, shortUrl)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return &url.OriginalUrl, nil
+	return url.OriginalUrl, nil
 }
 
 func (p *PostgresStore) CheckShortUrlExists(ctx context.Context, shortUrl string) (bool, error) {

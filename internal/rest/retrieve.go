@@ -22,5 +22,5 @@ func (rh *RetrieveHandler) Retrieve(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.Redirect(http.StatusFound, *url)
+	c.Redirect(http.StatusFound, url)
 }
