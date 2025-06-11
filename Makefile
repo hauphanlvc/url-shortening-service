@@ -35,7 +35,7 @@ migrate-force:
 migrate-create:
 	@migrate create -ext sql -dir $(MIGRATIONS_DIR) -seq $(name)
 local:
-	docker compose up url_shortener_db -d
+	docker compose up url_shortener_db dragonfly -d
 	air
 dev:
 	docker compose up --build -d
