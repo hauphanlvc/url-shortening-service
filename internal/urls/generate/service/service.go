@@ -4,32 +4,36 @@ import (
 	"context"
 	"errors"
 	_ "log"
+	"url-shortening-service/internal/cache"
+	"url-shortening-service/internal/repository"
 
 	"github.com/rs/zerolog/log"
 )
 
 const MAX_RETRIES = 1000000
 
-type Store interface {
-	InsertNewShortUrl(ctx context.Context, originalUrl, shortUrl string) (string, error)
-	RertrieveShortUrl(ctx context.Context, shortUrl string) (string, error)
-	CheckShortUrlExists(ctx context.Context, shortUrl string) (bool, error)
-}
+// type Store interface {
+// 	InsertNewShortUrl(ctx context.Context, originalUrl, shortUrl string) (string, error)
+// 	RertrieveShortUrl(ctx context.Context, shortUrl string) (, error)
+// 	CheckShortUrlExists(ctx context.Context, shortUrl string) (bool, error)
+// 	DeleteShortUrl(ctx context.Context, shortUrl string) error
+// 	GetInfoUrl(ctx context.Context, shortUrl string) (string, error)
+// }
 
 var ErrCannotGernerateShortURL = errors.New("cannot generate short url, always got the collision")
 
-type Cache interface {
-	Save(ctx context.Context, shortUrl, originalUrl string) error
-	Get(ctx context.Context, shortUrl string) (string, error)
-}
+// type Cache interface {
+// 	Save(ctx context.Context, shortUrl, originalUrl string) error
+// 	Get(ctx context.Context, shortUrl string) (string, error)
+// }
 
 type GenerateService struct {
-	store     Store
+	store     repository.Store
 	generator Generator
-	cache     Cache
+	cache     cache.Cache
 }
 
-func NewGenerateService(store Store, generator Generator, cache Cache) *GenerateService {
+func NewGenerateService(store repository.Store, generator Generator, cache cache.Cache) *GenerateService {
 	return &GenerateService{
 		store:     store,
 		generator: generator,
@@ -91,16 +95,17 @@ func (g *GenerateService) InsertNewShortUrl(ctx context.Context, originalUrl str
 		log.Error().Err(err)
 		return "", err
 	}
-	result, err := g.store.InsertNewShortUrl(ctx, originalUrl, shortUrl)
+	shortUrlResult, expiredAt, err := g.store.InsertNewShortUrl(ctx, originalUrl, shortUrl)
 	if err != nil {
 		log.Error().Err(err)
 		return "", err
 	}
-	log.Debug().Str("result", result).Msg("result after inserting new short url to database")
-	err = g.cache.Save(ctx, result, originalUrl)
+	log.Debug().Str("result", shortUrlResult).Msg("result after inserting new short url to database")
+	// err = g.cache.Save(ctx, shortUrl, originalUrl)
+	err = g.cache.Save(ctx, shortUrl, repository.RetrieveShortUrlRow{OriginalUrl: originalUrl, ExpiredAt: expiredAt})
 	if err != nil {
 		log.Error().Err(err)
 		return "", err
 	}
-	return result, nil
+	return shortUrlResult, nil
 }

@@ -1,8 +1,8 @@
-package rest
+package handler
 
 import (
 	"net/http"
-	"url-shortening-service/generate"
+	"url-shortening-service/internal/urls/generate/service"
 
 	"github.com/gin-gonic/gin"
 )

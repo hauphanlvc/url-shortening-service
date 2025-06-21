@@ -5,12 +5,17 @@ import (
 	"database/sql"
 	"fmt"
 	_ "log"
-	"url-shortening-service/cache"
 	"url-shortening-service/config"
-	"url-shortening-service/generate"
-	"url-shortening-service/internal/rest"
-	"url-shortening-service/repository"
-	"url-shortening-service/retrieve"
+	"url-shortening-service/internal/cache"
+
+	// "url-shortening-service/internal/repository"
+	"url-shortening-service/internal/repository/postgres"
+	// "url-shortening-service/internal/rest"
+	generate "url-shortening-service/internal/urls/generate/service"
+	generatehttp "url-shortening-service/internal/urls/generate/transport/http"
+	retrieve "url-shortening-service/internal/urls/retrieve/service"
+	retrievehttp "url-shortening-service/internal/urls/retrieve/transport/http"
+	// "url-shortening-service/internal/urls/retrieve"
 
 	"github.com/rs/zerolog/log"
 
@@ -59,14 +64,23 @@ func main() {
 	router.Use(gin.Recovery())
 
 	nanoIdGenerator := generate.NewNannoIdGenerator()
-	postgresStore := repository.NewPostgresStore(dbConn)
+	postgresStore := postgres.NewPostgresStore(dbConn)
 	generateService := generate.NewGenerateService(postgresStore, nanoIdGenerator, dragonFlyCache)
-	gernerateHandler := rest.NewGeneateHandler(generateService)
+	gernerateHandler := generatehttp.NewGeneateHandler(generateService)
 	router.POST("/shorten", gernerateHandler.Generate)
 
 	retrieveService := retrieve.NewRetrieveService(postgresStore, dragonFlyCache)
-	retrieveHandler := rest.NewRetrieveHandler(retrieveService)
+	retrieveHandler := retrievehttp.NewRetrieveHandler(retrieveService)
 	router.GET("/:shortUrl", retrieveHandler.Retrieve)
+
 	router.Run(":8080")
+
+	router.GET("/urls/:shortUrl", func(c *gin.Context) {
+
+	})
+
+	router.DELETE("/urls/:shortUrl", func(c *gin.Context) {
+
+	})
 	fmt.Println("Server is running on port 8080", cfg)
 }

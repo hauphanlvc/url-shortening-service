@@ -1,5 +1,12 @@
 # URL shortening
 
+<!--toc:start-->
+- [URL shortening](#url-shortening)
+  - [API Endpoints](#api-endpoints)
+  - [Diagram architecture](#diagram-architecture)
+  - [To do](#to-do)
+<!--toc:end-->
+
 - [API Endpoints](#api-endpoints)
 - [System design architecture](#diagram-architecture)
 - [Todo](#to-do)
@@ -12,7 +19,7 @@ efficient scalability and performance.
 
 - Shorten URL
 
-```bash
+```
 POST /shorten
 ```
 
@@ -30,7 +37,7 @@ Response: {
 
 - Redirect
 
-```bash
+```
 GET /{shortCode}
 ```
 
@@ -38,7 +45,7 @@ Action: 302 redirect to original URL
 
 - Get URL Info
 
-```bash
+```
 GET /urls/{shortCode}
 ```
 
@@ -52,7 +59,7 @@ Response: {
 
 - Delete URL
 
-```bash
+```
 DELETE /urls/{shortCode}
 ```
 
@@ -61,8 +68,9 @@ Response: { "success": true }
 ## Diagram architecture
 
 ## To do
-- [ ] Add logging
+
+- [x] Add logging
 - [ ] Delete expired short link
-- [ ] Use valkey for caching
+- [x] Use dragonfly for caching
 - [ ] Add user id into URL table and authenticate user by Oauth2
 - [ ] Custom alias feature ( limit: 7 characters or more)

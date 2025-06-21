@@ -1,8 +1,8 @@
-package rest
+package http
 
 import (
 	"net/http"
-	"url-shortening-service/retrieve"
+	retrieve "url-shortening-service/internal/urls/retrieve/service"
 
 	"github.com/gin-gonic/gin"
 )
