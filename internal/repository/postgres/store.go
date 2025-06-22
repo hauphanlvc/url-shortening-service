@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 	db "url-shortening-service/db/postgres/sqlc"
 	"url-shortening-service/internal/repository"
@@ -15,7 +16,11 @@ type PostgresStore struct {
 
 // DeleteShortUrl implements repository.Store.
 func (g *PostgresStore) DeleteShortUrl(ctx context.Context, shortUrl string) error {
-	panic("unimplemented")
+	err := g.queries.DeleteShortUrl(ctx, shortUrl)
+	if err != nil {
+		return fmt.Errorf("cannot delete shortUrl from database %w", err)
+	}
+	return nil
 }
 
 // GetInfoUrl implements repository.Store.
@@ -48,7 +53,7 @@ func (g *PostgresStore) InsertNewShortUrl(ctx context.Context, originalUrl, shor
 func (p *PostgresStore) RertrieveShortUrl(ctx context.Context, shortUrl string) (*repository.RetrieveShortUrlRow, error) {
 	url, err := p.queries.RetrieveShortUrl(ctx, shortUrl)
 	if err != nil {
-		return &repository.RetrieveShortUrlRow{}, err
+		return &repository.RetrieveShortUrlRow{}, repository.ErrNotFound
 	}
 	return &repository.RetrieveShortUrlRow{
 		OriginalUrl: url.OriginalUrl,

@@ -15,6 +15,7 @@ const EXPIRATION_TIME_MINUTE = 5
 type Cache interface {
 	Save(ctx context.Context, shortUrl string, data repository.RetrieveShortUrlRow) error
 	Get(ctx context.Context, shortUrl string) (*repository.RetrieveShortUrlRow, error)
+	Delete(ctx context.Context, shortUrl string) error
 }
 
 type ShortUrlRespone struct {
@@ -25,6 +26,8 @@ type DrangonFlyCache struct {
 	client *redis.Client
 }
 
+const PREFIX_SHORT_URL = "shortUrl:"
+
 func NewDrangonFlyCache(client *redis.Client) *DrangonFlyCache {
 	return &DrangonFlyCache{
 		client: client,
@@ -32,8 +35,7 @@ func NewDrangonFlyCache(client *redis.Client) *DrangonFlyCache {
 }
 
 func (d *DrangonFlyCache) Save(ctx context.Context, shortUrl string, data repository.RetrieveShortUrlRow) error {
-	const prefix = "shortUrl:"
-	key := prefix + shortUrl
+	key := PREFIX_SHORT_URL + shortUrl
 
 	fields := map[string]any{
 		"originalUrl": data.OriginalUrl,
@@ -62,8 +64,7 @@ func (d *DrangonFlyCache) Save(ctx context.Context, shortUrl string, data reposi
 }
 
 func (d *DrangonFlyCache) Get(ctx context.Context, shortUrl string) (*repository.RetrieveShortUrlRow, error) {
-	const prefix = "shortUrl:"
-	key := prefix + shortUrl
+	key := PREFIX_SHORT_URL + shortUrl
 
 	originalUrl, err := d.client.HGet(ctx, key, "originalUrl").Result()
 	if err == redis.Nil {
@@ -101,4 +102,18 @@ func (d *DrangonFlyCache) Get(ctx context.Context, shortUrl string) (*repository
 		OriginalUrl: originalUrl,
 		ExpiredAt:   expiredAt,
 	}, nil
+}
+
+func (d *DrangonFlyCache) Delete(ctx context.Context, shortUrl string) error {
+
+	key := PREFIX_SHORT_URL + shortUrl
+	_, err := d.client.Del(ctx, key).Result()
+	if err == redis.Nil {
+		log.Warn().Str("key", key).Msg("originalUrl does not exist in cache")
+		return nil
+	} else if err != nil {
+		log.Error().Err(err).Str("key", key).Msg("failed to delete key from database")
+		return fmt.Errorf("failed to delete key from cache")
+	}
+	return nil
 }
