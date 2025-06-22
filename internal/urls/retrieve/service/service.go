@@ -2,7 +2,6 @@ package retrieve
 
 import (
 	"context"
-	"fmt"
 	_ "log"
 	"time"
 	"url-shortening-service/internal/cache"
@@ -35,11 +34,16 @@ func (r *RetrieveService) RetrieveShortUrl(ctx context.Context, shortUrl string)
 		log.Debug().Msgf("Cache HIT")
 		log.Debug().Str("shortUrl", shortUrl).Str("originalUrl", result.OriginalUrl).Msgf("shortUrl %s got from the cache\n", shortUrl)
 		if result.ExpiredAt.Before(time.Now()) {
-			err := r.cache.Delete(ctx, shortUrl)
-			if err != nil {
-				return "", err
-			}
-			return "", fmt.Errorf("this short url have expired")
+			go func() {
+
+				err := r.cache.Delete(ctx, shortUrl)
+				if err != nil {
+					log.Error().Err(err).Str("shortUrl", shortUrl).Msg("failed to delete expired shortUrl asynchronously from cache")
+				}
+
+				log.Debug().Str("shortUrl", shortUrl).Msgf("delete shortUrl succesful from cache")
+			}()
+			return "", repository.ErrNotFound
 		}
 
 	} else {
@@ -52,14 +56,18 @@ func (r *RetrieveService) RetrieveShortUrl(ctx context.Context, shortUrl string)
 		}
 
 		if result.ExpiredAt.Before(time.Now()) {
-			log.Debug().Msgf("the shortUrl have expired, we gonna to delete it")
-			err := r.store.DeleteShortUrl(ctx, shortUrl)
+			go func() {
 
-			if err != nil {
-				log.Error().Err(err)
-				return "", err
-			}
-			log.Debug().Str("shortUrl", shortUrl).Msgf("delete shortUrl succesful")
+				log.Debug().Msgf("the shortUrl have expired, we gonna to delete it")
+				err := r.store.DeleteShortUrl(context.Background(), shortUrl)
+
+				if err != nil {
+					log.Error().Err(err).Str("shortUrl", shortUrl).Msg("failed to delete expired shortUrl asynchronously from database\n")
+				}
+				log.Debug().Str("shortUrl", shortUrl).Msgf("delete shortUrl succesful from database\n")
+
+			}()
+
 			return "", repository.ErrNotFound
 		}
 		log.Debug().Str("shortUrl", shortUrl).Msgf("shortUrl %s got from the database\n", shortUrl)
