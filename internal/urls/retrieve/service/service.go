@@ -36,10 +36,11 @@ func (r *RetrieveService) RetrieveShortUrl(ctx context.Context, shortUrl string)
 		log.Error().Err(err)
 		return "", err
 	}
-	if result.OriginalUrl != "" {
+	if result != nil {
 
 		log.Debug().Msgf("Cache HIT")
 		log.Debug().Str("shoshortUrl", shortUrl).Str("originalUrl", result.OriginalUrl).Msgf("shortUrl %s got from the cache\n", shortUrl)
+
 	} else {
 
 		log.Debug().Msgf("Cache miss")

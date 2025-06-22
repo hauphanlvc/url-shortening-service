@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"fmt"
 	"time"
 	"url-shortening-service/internal/repository"
 
@@ -9,10 +10,10 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const EXPIRATION_TIME_MINUTE = 1
+const EXPIRATION_TIME_MINUTE = 5
 
 type Cache interface {
-	Save(ctx context.Context, shortUrl string, r repository.RetrieveShortUrlRow) error
+	Save(ctx context.Context, shortUrl string, data repository.RetrieveShortUrlRow) error
 	Get(ctx context.Context, shortUrl string) (*repository.RetrieveShortUrlRow, error)
 }
 
@@ -30,48 +31,74 @@ func NewDrangonFlyCache(client *redis.Client) *DrangonFlyCache {
 	}
 }
 
-func (d *DrangonFlyCache) Save(ctx context.Context, shortUrl string, r repository.RetrieveShortUrlRow) error {
-	// err := d.client.Set(ctx, shortUrl, originalUrl, 1).Err()
-	hashFields := []string{
-		"originalUrl", r.OriginalUrl,
-		"expiredAt", r.ExpiredAt.Format(time.RFC3339),
+func (d *DrangonFlyCache) Save(ctx context.Context, shortUrl string, data repository.RetrieveShortUrlRow) error {
+	const prefix = "shortUrl:"
+	key := prefix + shortUrl
+
+	fields := map[string]any{
+		"originalUrl": data.OriginalUrl,
+		"expiredAt":   data.ExpiredAt.Format(time.RFC3339),
 	}
-	status, err := d.client.HSet(ctx, shortUrl, hashFields).Result()
 
-	// if err != nil {
-	// 	panic(err)
-	// }
+	// 1️⃣ Save the hash
+	if _, err := d.client.HSet(ctx, key, fields).Result(); err != nil {
+		return fmt.Errorf("failed to HSet cache for key %q: %w", key, err)
+	}
 
-	// status := d.client.Set(ctx, shortUrl, r, time.Duration(EXPIRATION_TIME_MINUTE)*time.Minute)
-	log.Debug().Msgf("Status cmd %v", status)
-	return err
+	// 2️⃣ Set TTL
+	ttl := time.Duration(EXPIRATION_TIME_MINUTE) * time.Minute
+	if err := d.client.Expire(ctx, key, ttl).Err(); err != nil {
+		return fmt.Errorf("failed to set expiration for key %q: %w", key, err)
+	}
+
+	log.Debug().
+		Str("key", key).
+		Str("originalUrl", data.OriginalUrl).
+		Time("expiredAt", data.ExpiredAt).
+		Dur("ttl", ttl).
+		Msg("cache saved successfully")
+
+	return nil
 }
 
 func (d *DrangonFlyCache) Get(ctx context.Context, shortUrl string) (*repository.RetrieveShortUrlRow, error) {
-	log.Info().Msgf("get shortUrl from cache")
+	const prefix = "shortUrl:"
+	key := prefix + shortUrl
 
-	originalUrl, err := d.client.HGet(ctx, shortUrl, "originalUrl").Result()
-
+	originalUrl, err := d.client.HGet(ctx, key, "originalUrl").Result()
 	if err == redis.Nil {
-		log.Error().Err(err).Msgf("shortUrl %v does not exist in cache", shortUrl)
+		log.Warn().Str("key", key).Msg("originalUrl does not exist in cache")
 		return nil, nil
-	} else if err != nil {
-		log.Error().Err(err).Msgf("Cannot get the cache of shortUrl, maybe the cache server is error")
-		return nil, err
+	}
+	if err != nil {
+		log.Error().Err(err).Str("key", key).Msg("failed to get originalUrl from cache")
+		return nil, fmt.Errorf("failed to get originalUrl from cache: %w", err)
 	}
 
-	expiredAt, err := d.client.HGet(ctx, shortUrl, "expiredAt").Result()
-	if err != nil {
+	expiredAtStr, err := d.client.HGet(ctx, key, "expiredAt").Result()
+	if err == redis.Nil {
+		log.Warn().Str("key", key).Msg("expiredAt does not exist in cache")
+		return nil, nil
 	}
-	parsedExpiredAt, err := time.Parse(time.RFC3339, expiredAt)
+	if err != nil {
+		log.Error().Err(err).Str("key", key).Msg("failed to get expiredAt from cache")
+		return nil, fmt.Errorf("failed to get expiredAt from cache: %w", err)
+	}
 
+	expiredAt, err := time.Parse(time.RFC3339, expiredAtStr)
 	if err != nil {
-		return nil, err
+		log.Error().Err(err).Str("expiredAt", expiredAtStr).Msg("failed to parse expiredAt")
+		return nil, fmt.Errorf("failed to parse expiredAt: %w", err)
 	}
-	// originalUrl, err := d.client.Get(ctx, shortUrl).Result()
-	log.Debug().Str("originalUrl", originalUrl)
-	log.Debug().Str("expiredAt", expiredAt)
-	log.Debug().Str("originalUrl", originalUrl).Msgf("get from the cache successfully")
-	log.Debug().Str("expiredAt", originalUrl).Msgf("get from the cache successfully")
-	return &repository.RetrieveShortUrlRow{OriginalUrl: originalUrl, ExpiredAt: parsedExpiredAt}, nil
+
+	log.Debug().
+		Str("key", key).
+		Str("originalUrl", originalUrl).
+		Time("expiredAt", expiredAt).
+		Msg("fetched data from cache successfully")
+
+	return &repository.RetrieveShortUrlRow{
+		OriginalUrl: originalUrl,
+		ExpiredAt:   expiredAt,
+	}, nil
 }
