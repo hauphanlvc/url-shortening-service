@@ -18,8 +18,8 @@ func NewRetrieveHandler(service *retrieve.RetrieveService) *RetrieveHandler {
 }
 
 func (rh *RetrieveHandler) Retrieve(c *gin.Context) {
-	shortUrl := c.Param("shortUrl")
-	url, err := rh.service.RetrieveShortUrl(c, shortUrl)
+	shortURL := c.Param("shortUrl")
+	url, err := rh.service.RetrieveShortUrl(c, shortURL)
 	if err != nil {
 		switch {
 		case errors.Is(err, repository.ErrNotFound): // if your service exposes this
