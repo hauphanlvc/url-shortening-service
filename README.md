@@ -37,6 +37,7 @@ A high-performance, minimalistic URL shortening service built with Go, PostgreSQ
 ## ⚙️ Requirements
 
 - Go 1.21+
+- Docker compose
 - PostgreSQL
 - Redis (preferably [DragonFly](https://www.dragonflydb.io/))
 - [golang-migrate/migrate](https://github.com/golang-migrate/migrate)
@@ -96,22 +97,22 @@ Creates a new short URL and stores it.
 
     ```json
     {
-      "long_url": "[https://example.com/a-very-long-and-unwieldy-url-to-shorten](https://example.com/a-very-long-and-unwieldy-url-to-shorten)"
+      "url": "https://github.com/hauphanlvc/url-shortening-service"
     }
     ```
 
-* **Success Response (`201 Created`):**
+* **Success Response (`200 Created`):**
 
     The response body includes the full short URL.
 
     ```json
     {
-      "short_url": "http://localhost:8080/jA8s1bC"
+      "ShortUrl": "o5CiXqw"
     }
     ```
 
 * **Error Responses:**
-    * `400 Bad Request`: If the `long_url` is missing or invalid.
+    * `400 Bad Request`: If the `long_url` is missing or invalid. (Implementation Future)
     * `429 Too Many Requests`: If the rate limit is exceeded.
     * `500 Internal Server Error`: For any unexpected server-side errors.
 
@@ -120,7 +121,7 @@ Creates a new short URL and stores it.
     ```bash
     curl -X POST http://localhost:8080/shorten \
     -H "Content-Type: application/json" \
-    -d '{"long_url": "[https://developer.mozilla.org/en-US/docs/Web/HTTP/Status](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)"}'
+    -d '{"url": "https://github.com/hauphanlvc/url-shortening-service"}'
     ```
 
 ---
