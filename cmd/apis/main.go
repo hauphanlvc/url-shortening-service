@@ -5,25 +5,38 @@ import (
 	"database/sql"
 	"fmt"
 	_ "log"
+	"net/http"
 	"url-shortening-service/config"
 	"url-shortening-service/internal/cache"
 
-	// "url-shortening-service/internal/repository"
+	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 	"url-shortening-service/internal/repository/postgres"
-	// "url-shortening-service/internal/rest"
 	generate "url-shortening-service/internal/urls/generate/service"
 	generatehttp "url-shortening-service/internal/urls/generate/transport/http"
 	retrieve "url-shortening-service/internal/urls/retrieve/service"
 	retrievehttp "url-shortening-service/internal/urls/retrieve/transport/http"
-	// "url-shortening-service/internal/urls/retrieve"
 
-	"github.com/rs/zerolog/log"
-
-	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
+	"golang.org/x/time/rate"
 )
 
+ // Todo: Improve RateLimiter with client IP
+func RateLimiter() gin.HandlerFunc {
+	limiter := rate.NewLimiter(1, 4)
+	return func(c *gin.Context) {
+
+		if !limiter.Allow() {
+			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
+				"message": "Limite exceed",
+			})
+		} else {
+			c.Next()
+		}
+
+	}
+}
 func main() {
 	// Load configuration
 	cfg, err := config.LoadConfig(".")
@@ -62,7 +75,7 @@ func main() {
 	dragonFlyCache := cache.NewDrangonFlyCache(client)
 	router := gin.Default()
 	router.Use(gin.Recovery())
-
+	router.Use(RateLimiter())
 	nanoIdGenerator := generate.NewNannoIdGenerator()
 	postgresStore := postgres.NewPostgresStore(dbConn)
 	generateService := generate.NewGenerateService(postgresStore, nanoIdGenerator, dragonFlyCache)
@@ -73,7 +86,9 @@ func main() {
 	retrieveHandler := retrievehttp.NewRetrieveHandler(retrieveService)
 	router.GET("/:shortUrl", retrieveHandler.Retrieve)
 
-	router.Run(":8080")
+	if err := router.Run(":8080"); err != nil {
+		log.Fatal().Msgf("failed to run server: %v", err)
+	}
 
 	router.GET("/urls/:shortUrl", func(c *gin.Context) {
 

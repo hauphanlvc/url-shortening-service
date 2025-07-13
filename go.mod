@@ -10,6 +10,7 @@ require (
 	github.com/redis/go-redis/v9 v9.9.0
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/viper v1.19.0
+	golang.org/x/time v0.5.0
 )
 
 require (

@@ -18,10 +18,6 @@ type Cache interface {
 	Delete(ctx context.Context, shortUrl string) error
 }
 
-type ShortUrlRespone struct {
-	originalUrl string `redis:"originalUrl"`
-	expiredAt   string `redis:"expiredAt"`
-}
 type DrangonFlyCache struct {
 	client *redis.Client
 }

@@ -42,12 +42,6 @@ func LoadConfig(path string) (*Config, error) {
 			log.Fatalf("failed to bind env variable %s: %v", value, err)
 		}
 	}
-	// viper.BindEnv("HOST")
-	// viper.BindEnv("PORT")
-	// viper.BindEnv("USER")
-	// viper.BindEnv("PASSWORD")
-	// viper.BindEnv("NAME")
-	// viper.BindEnv("SSLMODE")
 
 	var config Config
 

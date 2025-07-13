@@ -1,18 +1,10 @@
 # Makefile
 
-# -include .env
-# export
+-include .env
+export
 #
-# # Load environment variables
-# DB_NAME ?= $(DB_NAME)
-# DB_USER ?= $(DB_USER)
-# DB_PASSWORD ?= $(DB_PASSWORD)
-# DB_HOST ?= $(DB_HOST)
-# DB_PORT ?= $(DB_PORT)
-# DB_SSLMODE ?= ${DB_SSLMODE}
-# DB_HOST ?= ${DB_HOST}
-# MIGRATIONS_DIR = "./db/postgres/migrations"
-# DATABASE_URL = "postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)"
+MIGRATIONS_DIR = "./db/postgres/migrations"
+DATABASE_URL = "postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)"
 # export $PATH="${PWD}/bin/:$PATH"
 
 OS := $(shell uname | tr A-Z a-z)
@@ -34,10 +26,14 @@ migrate-force:
 # Migrate Create: Create a new migration file
 migrate-create:
 	@migrate create -ext sql -dir $(MIGRATIONS_DIR) -seq $(name)
-local:
-	docker compose up url_shortener_db dragonfly -d
-	air
-dev:
-	docker compose up --build -d
 
-.PHONY: migrate-up migrate-down migrate-create migrate-force local dev
+db-up: 
+	docker compose up url_shortener_db dragonfly -d
+
+local: db-up migrate-up
+	air
+
+# dev: implemented future
+# 	docker compose up --build -d
+
+.PHONY: migrate-up migrate-down migrate-create migrate-force db-up local dev
