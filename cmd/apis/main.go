@@ -1,6 +1,7 @@
 package main
 
 import (
+	"time"
 	"context"
 	"database/sql"
 	"fmt"
@@ -53,10 +54,15 @@ func main() {
 	if err != nil {
 		log.Fatal().Msgf("Cannot connect database %s", err)
 	}
-	err = dbConn.Ping()
-	if err != nil {
-		log.Fatal().Msgf("Failed to ping database")
+	fmt.Println("Attempting to connect to PostgreSQL...")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Set a timeout for the ping
+	defer cancel()
+
+	if err := dbConn.PingContext(ctx); err != nil {
+		log.Fatal().Msgf("Could not connect to PostgreSQL: %v", err)
 	}
+
+	log.Info().Msg("Successfully connected to PostgreSQL! ✅")
 	defer func() {
 		err := dbConn.Close()
 		if err != nil {
@@ -64,14 +70,21 @@ func main() {
 		}
 	}()
 
+	// Create a new Redis client
 	client := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
+		Addr:     fmt.Sprintf("%s:6379", cfg.RedisHost),
+		Password: "", // No password set in this example
+		DB:       0,  // Use default DB
 	})
-	if err := client.Ping(context.TODO()).Err(); err != nil {
-		log.Fatal().Err(err)
+
+	fmt.Println("Attempting to connect to Redis...")
+
+	if err := client.Ping(ctx).Err(); err != nil {
+		log.Fatal().Msgf("Could not connect to Redis: %v", err)
 	}
+
+	log.Info().Msg("Successfully connected to Redis! ✅")
+
 	dragonFlyCache := cache.NewDrangonFlyCache(client)
 	router := gin.Default()
 	router.Use(gin.Recovery())

@@ -29,13 +29,13 @@ migrate-create:
 
 db-up: 
 	docker compose up url_shortener_db dragonfly -d
-	sleep 10
+	# sleep 5
 
 local: db-up migrate-up
 	air
 
-# dev: implemented future
-# 	docker compose up --build -d
+dev:
+	docker compose up --build -d
 clean:
 	docker compose down
 .PHONY: migrate-up migrate-down migrate-create migrate-force db-up local dev clean

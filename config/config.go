@@ -16,6 +16,7 @@ type Config struct {
 	Password string `mapstructure:"PASSWORD"`
 	DBName   string `mapstructure:"NAME"`
 	SSLMode  string `mapstructure:"SSLMODE"`
+	RedisHost string `mapstructure:"REDIS_HOST"`
 }
 
 func LoadLocalEnv() error {
@@ -36,7 +37,7 @@ func LoadConfig(path string) (*Config, error) {
 	}
 	viper.SetEnvPrefix("DB")
 	viper.AutomaticEnv()
-	envs := []string{"HOST", "PORT", "USER", "PASSWORD", "NAME", "SSLMODE" }
+	envs := []string{"HOST", "PORT", "USER", "PASSWORD", "NAME", "SSLMODE", "REDIS_HOST"}
 	for _, value := range envs {
 		if err := viper.BindEnv(value); err != nil {
 			log.Fatalf("failed to bind env variable %s: %v", value, err)
