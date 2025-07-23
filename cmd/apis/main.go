@@ -89,7 +89,7 @@ func main() {
 	router := gin.Default()
 	router.Use(gin.Recovery())
 	router.Use(RateLimiter())
-	nanoIdGenerator := generate.NewNannoIdGenerator()
+	nanoIdGenerator := generate.NewNanoIdGenerator()
 	postgresStore := postgres.NewPostgresStore(dbConn)
 	generateService := generate.NewGenerateService(postgresStore, nanoIdGenerator, dragonFlyCache)
 	gernerateHandler := generatehttp.NewGeneateHandler(generateService)

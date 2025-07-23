@@ -1,7 +1,7 @@
 package config
 
 import (
-	// "fmt"
+	"fmt"
 	"log"
 	"os"
 
@@ -26,7 +26,7 @@ func LoadLocalEnv() error {
 	}
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		return fmt.Errorf("error loading .env file: %w", err)
 	}
 	return nil
 }

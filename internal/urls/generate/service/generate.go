@@ -13,13 +13,12 @@ type Generator interface {
 
 type NanoIdGenerator struct{}
 
-func NewNannoIdGenerator() *NanoIdGenerator {
+func NewNanoIdGenerator() *NanoIdGenerator {
 	return &NanoIdGenerator{}
 }
 
 func (n *NanoIdGenerator) GenerateShortUrl() (string, error) {
 	shortUrl, err := gonanoid.New(SHORT_URL_LEN)
-	log.Logger.Info().Msgf("GenerateShortUrl")
 	log.Logger.Debug().Msgf("shortUrl %s", shortUrl)
 	return shortUrl, err
 }
